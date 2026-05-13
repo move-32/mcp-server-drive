@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+
+# Editor / OS noise
+.DS_Store
+.vscode/
+.idea/
