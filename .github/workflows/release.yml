@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (must already exist, e.g. v0.1.0)'
+        required: true
+
+permissions:
+  contents: write  
+  id-token: write 
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Resolve tag and version
+        id: tag
+        shell: bash
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Verify tag matches package.json version
+        shell: bash
+        run: |
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          TAG_VERSION="${{ steps.tag.outputs.version }}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Tag v$TAG_VERSION does not match package.json version v$PKG_VERSION. Bump package.json before tagging."
+            exit 1
+          fi
+          echo "OK: tag v$TAG_VERSION matches package.json"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: mcp-server-drive ${{ steps.tag.outputs.tag }}
+          generate_release_notes: true
+          prerelease: ${{ steps.tag.outputs.prerelease == 'true' }}
+          make_latest: ${{ steps.tag.outputs.prerelease == 'false' && 'true' || 'false' }}
+          body: |
+            **mcp-server-drive ${{ steps.tag.outputs.tag }}** — a local-spawned Google Drive MCP server. Per-user OAuth, read-only.
+
+            ```bash
+            npx -y mcp-server-drive@${{ steps.tag.outputs.version }}
+            ```
+
+            Setup, tools, and token paths: see the [README](../blob/${{ steps.tag.outputs.tag }}/README.md). Published with [npm provenance](https://docs.npmjs.com/generating-provenance-statements).
+
+            ---
