@@ -1,6 +1,5 @@
 {
   "name": "@move32/mcp-server-drive",
-  "private": true,
   "version": "0.1.0",
   "description": "Google Drive MCP server. Per-user OAuth, read-only, exports Google Docs/Sheets/Slides as text.",
   "type": "module",
