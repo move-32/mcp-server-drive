@@ -84,7 +84,7 @@ jobs:
             **mcp-server-drive ${{ steps.tag.outputs.tag }}** — a local-spawned Google Drive MCP server. Per-user OAuth, read-only.
 
             ```bash
-            npx -y mcp-server-drive@${{ steps.tag.outputs.version }}
+            npx -y @move32/mcp-server-drive@${{ steps.tag.outputs.version }}
             ```
 
             Setup, tools, and token paths: see the [README](../blob/${{ steps.tag.outputs.tag }}/README.md). Published with [npm provenance](https://docs.npmjs.com/generating-provenance-statements).

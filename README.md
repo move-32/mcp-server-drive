@@ -28,7 +28,7 @@ Scope: `https://www.googleapis.com/auth/drive.readonly`. The server never writes
 ## Install
 
 ```
-npx -y mcp-server-drive
+npx -y @move32/mcp-server-drive
 ```
 
 Or wire it into a plugin's `.mcp.json`:
@@ -38,7 +38,7 @@ Or wire it into a plugin's `.mcp.json`:
   "mcpServers": {
     "gdrive": {
       "command": "npx",
-      "args": ["-y", "mcp-server-drive"]
+      "args": ["-y", "@move32/mcp-server-drive"]
     }
   }
 }
