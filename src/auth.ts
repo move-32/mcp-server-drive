@@ -137,6 +137,11 @@ function openBrowser(url: string): void {
     command = `cmd /c start "" "${url}"`;
   } else if (platform === 'darwin') {
     command = `open "${url}"`;
+  } else if (process.env.WSL_DISTRO_NAME) {
+    // WSL reports platform 'linux' but usually has no GUI. Reach the
+    // Windows-side default browser: wslview (from wslu) if installed,
+    // otherwise explorer.exe via WSL interop.
+    command = `wslview "${url}" 2>/dev/null || explorer.exe "${url}"`;
   } else {
     command = `xdg-open "${url}"`;
   }
